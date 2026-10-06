@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hidden input with currently selected date ISO -->
+<input type="hidden" id="selectedDateISO" value="{{ data_selecionada_iso }}">
+
+<!-- Top Control Bar -->
+<header class="top-control-bar">
+    <div class="date-navigation-wrapper">
+        <button type="button" class="btn-today" id="btnHoje" title="Ir para a data atual do computador">
+            hoje <span>&lt;&gt;</span>
+        </button>
+
+        <button type="button" class="date-selector-btn" id="dateSelectorBtn">
+            <span>{{ data_selecionada_formatada }}</span>
+            <span class="arrow-icon">∨</span>
+        </button>
+
+        <!-- Dropdown Popover de Calendário Mensal -->
+        <div class="calendar-dropdown" id="calendarDropdown">
+            <div class="calendar-header">
+                <button type="button" class="calendar-nav-btn" id="prevMonthBtn">&lt;</button>
+                <h4 id="currentMonthYear">Setembro 2026</h4>
+                <button type="button" class="calendar-nav-btn" id="nextMonthBtn">&gt;</button>
+            </div>
+            <div class="calendar-days-grid" id="calendarDaysGrid">
+                <!-- Renderizado via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão de Usuário do Sistema (Canto Superior Direito) -->
+    <button type="button" class="user-profile-btn" id="userProfileBtn" title="Perfil do Usuário">
+        👤
+    </button>
+</header>
+
+<!-- Filter Area ("área dos filtros") -->
+<form method="GET" action="{% url 'baseApp:home' %}" id="filterForm" class="filter-bar">
+    <input type="hidden" name="data" value="{{ data_selecionada_iso }}">
+    <div class="filter-left">
+        <span class="filter-title">área dos filtros</span>
+        <select name="risco" class="filter-select">
+            <option value="todos" {% if risco_selecionado == 'todos' %}selected{% endif %}>Todas as Categorias / Riscos</option>
+            <option value="alto" {% if risco_selecionado == 'alto' %}selected{% endif %}>Alto Risco</option>
+            <option value="medio" {% if risco_selecionado == 'medio' %}selected{% endif %}>Médio Risco</option>
+            <option value="baixo" {% if risco_selecionado == 'baixo' %}selected{% endif %}>Baixo Risco</option>
+        </select>
+    </div>
+    <button type="submit" class="btn-aplicar">aplicar</button>
+</form>
+
+<!-- Main Cronograma Diário (24 Hours in 30-min Blocks) -->
+<section class="cronograma-wrapper">
+    <div class="cronograma-header">
+        <span>cronograma diário (24h) - {{ data_selecionada_formatada }}</span>
+        <span style="font-size: 0.85rem; font-weight: normal; color: var(--text-muted);">
+            Total de Atendimentos: <strong>{{ total_atendimentos }}</strong>
+        </span>
+    </div>
+    <div class="cronograma-content">
+        {% for slot in cronograma_slots %}
+            <div class="time-slot-row">
+                <div class="time-slot-label">{{ slot.horario }}</div>
+                <div class="time-slot-events">
+                    {% if slot.items %}
+                        {% for aten in slot.items %}
+                            <div class="event-card risco-{{ aten.risco }}" data-id="{{ aten.id }}" title="Clique para ver detalhes do atendimento">
+                                <span class="event-client-name">{{ aten.cliente.nome }}</span>
+                                <span class="badge-risk {{ aten.risco }}">{{ aten.get_risco_display }}</span>
+                                <span class="event-description-snippet">{{ aten.descricao }}</span>
+                                {% if aten.arquivos.count > 0 %}
+                                    <span class="event-files-indicator">
+                                        📎 {{ aten.arquivos.count }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <button type="button" class="btn-add-quick" data-time="{{ slot.horario }}">
+                        + Agendar às {{ slot.horario }}
+                    </button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Action Buttons (Bottom Right Footer) -->
+<div class="action-buttons-footer">
+    <button type="button" class="btn-action" id="btnCadastrarCliente">
+        👤 Cliente
+    </button>
+    <button type="button" class="btn-action" id="btnCadastrarAtendimento">
+        📋 Atendimento
+    </button>
+</div>
+
+<!-- Modal Cadastrar Cliente (Sem senha) -->
+<div class="modal-overlay" id="clienteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Cadastrar Cliente / Paciente</h3>
+            <button class="modal-close-btn close-modal-btn">&times;</button>
+        </div>
+        <form id="formCadastrarCliente" method="POST" action="{% url 'baseApp:cadastrar_cliente' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="clienteNome">Nome Completo *</label>
+                <input type="text" name="nome" id="clienteNome" class="form-control" placeholder="Ex: Maria Oliveira" required>
+            </div>
+            <div class="form-group">
+                <label for="clienteEmail">E-mail</label>
+                <input type="email" name="email" id="clienteEmail" class="form-control" placeholder="cliente@email.com">
+            </div>
+            <div class="form-group">
+                <label for="clienteTelefone">Telefone</label>
+                <input type="text" name="telefone" id="clienteTelefone" class="form-control" placeholder="(11) 98765-4321">
+            </div>
+            <div class="form-group">
+                <label for="clienteCpf">CPF</label>
+                <input type="text" name="cpf" id="clienteCpf" class="form-control" placeholder="000.000.000-00">
+            </div>
+            <div class="form-group">
+                <label for="clienteRisco">Nível de Risco / Categoria Inicial</label>
+                <select name="risco" id="clienteRisco" class="form-control">
+                    <option value="baixo">Baixo Risco</option>
+                    <option value="medio" selected>Médio Risco</option>
+                    <option value="alto">Alto Risco</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="clienteObservacoes">Observações Gerais</label>
+                <textarea name="observacoes" id="clienteObservacoes" class="form-control" placeholder="Observações clínicas ou histórico inicial..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary close-modal-btn">Cancelar</button>
+                <button type="submit" class="btn-action">Salvar Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Cadastrar Atendimento -->
+<div class="modal-overlay" id="atendimentoModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Cadastrar Atendimento</h3>
+            <button class="modal-close-btn close-modal-btn">&times;</button>
+        </div>
+        <form id="formCadastrarAtendimento" method="POST" action="{% url 'baseApp:cadastrar_atendimento' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="atendimentoCliente">Selecione o Cliente *</label>
+                <select name="cliente_id" id="atendimentoCliente" class="form-control" required>
+                    <option value="">-- Escolha um Cliente Cadastrado --</option>
+                    {% for c in clientes %}
+                        <option value="{{ c.id }}">{{ c.nome }} ({{ c.get_risco_display }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label for="atendimentoData">Data *</label>
+                    <input type="date" name="data" id="atendimentoData" class="form-control" value="{{ data_selecionada_iso }}" required>
+                </div>
+                <div style="flex: 1;">
+                    <label for="atendimentoHorario">Horário (Bloco de 30 min) *</label>
+                    <select name="horario" id="atendimentoHorario" class="form-control" required>
+                        {% for slot in cronograma_slots %}
+                            <option value="{{ slot.horario }}">{{ slot.horario }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="atendimentoRisco">Categoria de Risco do Atendimento</label>
+                <select name="risco" id="atendimentoRisco" class="form-control">
+                    <option value="baixo">Baixo Risco</option>
+                    <option value="medio" selected>Médio Risco</option>
+                    <option value="alto">Alto Risco</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="atendimentoDescricao">Descrição do Atendimento *</label>
+                <textarea name="descricao" id="atendimentoDescricao" class="form-control" placeholder="Escreva a descrição do atendimento, procedimentos ou queixas do paciente..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="atendimentoArquivos">Upload de Arquivos (Fotos, .pdf, .docx)</label>
+                <input type="file" name="arquivos" id="atendimentoArquivos" class="form-control" multiple accept="image/*,.pdf,.docx">
+                <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+                    Os arquivos serão armazenados para consulta no histórico do paciente.
+                </small>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary close-modal-btn">Cancelar</button>
+                <button type="submit" class="btn-action">Salvar Atendimento</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

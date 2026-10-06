@@ -1,0 +1,42 @@
+name: Configuração
+description: Registre uma alteração ou ajuste de configuração do projeto.
+title: ""
+labels: ["config"]
+
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo
+      description: Descreva a alteração de configuração necessária e seu impacto.
+      placeholder: "Como <administrador/desenvolvedor>, quero <configuração>, para que <benefício>."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceitação
+      description: Liste verificações necessárias para validação da configuração.
+      placeholder: |
+        - [ ] Arquivo de configuração atualizado
+        - [ ] Ambiente validado
+    validations:
+      required: true
+
+  - type: input
+    id: screens
+    attributes:
+      label: Link das telas ou protótipo
+      description: Informe links de referência ou diagramas, caso exista.
+      placeholder: "https://www.figma.com/design/..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: observations
+    attributes:
+      label: Observações
+      description: Variáveis de ambiente, dependências ou restrições relevantes.
+    validations:
+      required: false

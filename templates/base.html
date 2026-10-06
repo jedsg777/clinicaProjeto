@@ -1,0 +1,115 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Clínica Projeto - Cronograma{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar">
+        <div class="sidebar-top-indicator"></div>
+        <div class="sidebar-brand">sidebar</div>
+        <ul class="sidebar-nav">
+            <li class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <a href="{% url 'baseApp:home' %}">
+                    <span>🏠</span> Home
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content Container -->
+    <main class="app-container">
+        {% if messages %}
+            <div class="messages-wrapper" style="margin-bottom: 15px;">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" style="padding: 10px 15px; border-radius: 6px; background: #d1fae5; color: #065f46; margin-bottom: 5px; font-weight: 500;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- User Profile Modal -->
+    <div class="modal-overlay" id="userProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Perfil do Usuário do Sistema</h3>
+                <button class="modal-close-btn close-modal-btn">&times;</button>
+            </div>
+            <div class="user-info-card">
+                <div class="user-info-row">
+                    <span class="user-info-label">Nome Completo:</span>
+                    <span class="user-info-value">{{ usuario_sistema.nome }}</span>
+                </div>
+                <div class="user-info-row">
+                    <span class="user-info-label">Função / Cargo:</span>
+                    <span class="user-info-value">{{ usuario_sistema.funcao }}</span>
+                </div>
+                <div class="user-info-row">
+                    <span class="user-info-label">E-mail:</span>
+                    <span class="user-info-value">{{ usuario_sistema.email }}</span>
+                </div>
+                <div class="user-info-row">
+                    <span class="user-info-label">Registro Profissional:</span>
+                    <span class="user-info-value">{{ usuario_sistema.crm }}</span>
+                </div>
+                <div class="user-info-row">
+                    <span class="user-info-label">Status da Conta:</span>
+                    <span class="user-info-value" style="color: var(--green-primary); font-weight: bold;">● {{ usuario_sistema.status }}</span>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary close-modal-btn">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalhes do Atendimento -->
+    <div class="modal-overlay" id="detalhesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes do Atendimento</h3>
+                <button class="modal-close-btn close-modal-btn">&times;</button>
+            </div>
+            <div class="user-info-card">
+                <div class="user-info-row">
+                    <span class="user-info-label">Cliente / Paciente:</span>
+                    <span class="user-info-value" id="detalhesCliente">-</span>
+                </div>
+                <div class="user-info-row">
+                    <span class="user-info-label">Data e Horário:</span>
+                    <span class="user-info-value" id="detalhesDataHora">-</span>
+                </div>
+                <div class="user-info-row">
+                    <span class="user-info-label">Categoria / Risco:</span>
+                    <span class="user-info-value"><span id="detalhesRisco" class="badge-risk medio">Médio</span></span>
+                </div>
+                <div class="form-group" style="margin-top: 10px;">
+                    <label>Descrição do Atendimento:</label>
+                    <div id="detalhesDescricao" style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 0.9rem; white-space: pre-wrap;"></div>
+                </div>
+                <div class="form-group">
+                    <label>Arquivos e Anexos (.pdf, .docx, fotos):</label>
+                    <ul class="file-list" id="detalhesArquivos">
+                        <!-- Populated via JS -->
+                    </ul>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary close-modal-btn">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

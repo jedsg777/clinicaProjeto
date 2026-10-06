@@ -1,0 +1,42 @@
+name: Bug
+description: Relate um problema ou falha encontrada no sistema.
+title: ""
+labels: ["bug"]
+
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo
+      description: Descreva o comportamento esperado e a falha observada.
+      placeholder: "Como <papel>, ao <ação>, esperava <resultado>, porém ocorreu <erro>."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceitação
+      description: Liste condições objetivas para considerar o bug resolvido.
+      placeholder: |
+        - [ ] Comportamento corrigido
+        - [ ] Sem regressão de funcionalidades existentes
+    validations:
+      required: true
+
+  - type: input
+    id: screens
+    attributes:
+      label: Link das telas ou protótipo
+      description: Informe o endereço de capturas de tela ou evidências do erro, caso exista.
+      placeholder: "https://www.figma.com/design/..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: observations
+    attributes:
+      label: Observações
+      description: Passos para reproduzir, logs de erro, SO/navegador ou restrições relevantes.
+    validations:
+      required: false
